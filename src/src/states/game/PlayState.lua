@@ -468,8 +468,8 @@ function PlayState:render()
         love.graphics.setFont(gFonts['small'])
 
         -- mark point numbers
-        love.graphics.setColor(0, 0, 0, 255)
-        love.graphics.print(tostring(i), point[1], point[2])
+        -- love.graphics.setColor(0, 0, 0, 255)
+        -- love.graphics.print(tostring(i), point[1], point[2])
 
         love.graphics.setColor(self.pointData[i]['outline'])
         love.graphics.circle('fill', point[1], point[2], 5)

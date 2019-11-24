@@ -93,7 +93,7 @@ function GameOverState:render()
         else
             love.graphics.printf('Points: ' .. tostring(self.players[i].points), self.x, y + 10 + gFonts['medium']:getHeight(), self.width, 'left')
         end
-        love.graphics.printf('Area: ' .. tostring(self.players[i].pentagonArea), self.x, y + 10 + gFonts['medium']:getHeight() + gFonts['small']:getHeight(), self.width, 'left')
+        love.graphics.printf('Area: ' .. tostring(self.players[i].area), self.x, y + 10 + gFonts['medium']:getHeight() + gFonts['small']:getHeight(), self.width, 'left')
         y = y + 10 + gFonts['medium']:getHeight() + gFonts['small']:getHeight() + 20
     end
 
