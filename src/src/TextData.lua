@@ -36,11 +36,12 @@ HELP_DATA = {
 
 CREDITS_DATA = {
     ['title'] = {"Credits"},
-    ['headers'] = {"Original Idea", "Lead Programmer", "Programming team", "Game Engineers"},
+    ['headers'] = {"Stavan Jain", "Vishnu Nittoor", "Aryaman Dwivedi", "Rohan Subramaniam", "Amogh Manivannan"},
     ['info'] = {
-        ["Original Idea"] = {"Stavan Jain"},
-        ["Lead Programmer"] = {"Vishnu Nittoor"},
-        ["Programming team"] = {"Vishnu Nittoor", "Aryaman Dwivedi"},
-        ["Game Engineers"] = {"Stavan Jain", "Rohan Subramaniam"}
+        ["Stavan Jain"] = {"Original game concept."},
+        ["Vishnu Nittoor"] = {"Lead programmer and game developer."},
+        ["Aryaman Dwivedi"] = {"Programmer."},
+        ["Rohan Subramaniam"] = {"Also helped with the game concept."},
+        ["Amogh Manivannan"] = {"Marketing."}
     },
 }

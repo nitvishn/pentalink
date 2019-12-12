@@ -249,6 +249,7 @@ function shoelace(pset)
     return math.abs(area / 2.0)
 end
 
+
 function getVertices(cycle, point_list)
     point_list = point_list or gPoints
     local vertices = {}
@@ -256,6 +257,12 @@ function getVertices(cycle, point_list)
         vertices = table.concatenate(vertices, point_list[nodeNumber])
     end
     return vertices
+end
+
+function visitable_dfs(u, visited)
+    if not visited then
+        visited = {}
+    end
 end
 
 function pointInPolygon(point, vertices)

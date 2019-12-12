@@ -135,7 +135,6 @@ function PlayState:undoMove()
     end
 
     local move = self.moveHistory[moveNum]
-    print(move[1], move[2])
     self.graph:remove_edge(move[1], move[2])
     self.cycles = minimum_cycle_basis(self.graph)
     -- print_r(self.cycles)
@@ -243,6 +242,12 @@ function validateCycle(cycle)
     for i = 1, #cyc_copy - 2 do
         if not remove[cyc_copy[i]] then
             table.insert(new_cyc, cyc_copy[i])
+        end
+    end
+
+    for i, point in gPoints do
+        if pointInPolygon(point, getVertices(cycle)) then
+            return false
         end
     end
 
@@ -377,7 +382,6 @@ function PlayState:registerMove(move)
 
         gStateStack:push(GameOverState(bestPlayer, bestPlayersArea, self.players))
     end
-    print_r(self.graph.nodes)
 end
 
 function PlayState:update(dt)
