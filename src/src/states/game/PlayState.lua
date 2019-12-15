@@ -10,6 +10,18 @@ function PlayState:init(numPlayers, levelNum, AI)
                 gStateStack:push(LevelSelectState(
                     {
                     {
+                        ['text'] = 'Resume',
+                        ["font"] = gFonts['medium'],
+                        ["arrowFunction"] = function(incr) end,
+                        ["enter"] = function()
+                            Timer.tween(0.25, {
+                                [gStateStack.states[#gStateStack.states].colors['panel']] = {[4] = 0},
+                                [gStateStack.states[#gStateStack.states].colors['text']] = {[4] = 0},
+                                [gStateStack.states[#gStateStack.states].colors['background']] = {[4] = 0}
+                            }):finish(function() gStateStack:pop() end)
+                        end
+                    },
+                    {
                         ['text'] = 'Rules',
                         ["font"] = gFonts['medium'],
                         ["arrowFunction"] = function(incr) end,
@@ -22,7 +34,7 @@ function PlayState:init(numPlayers, levelNum, AI)
                         ["enter"] = function()
                             gStateStack:push(FadeInState({r = 255, g = 255, b = 255}, 0.5, function()
                                 gStateStack:pop()
-                                self:init(#self.players, self.levelNum, self.AI)
+                                self:init(#self.currentFrame.players, self.levelNum, self.AI)
                                 gStateStack:push(FadeOutState({r = 255, g = 255, b = 255}, 0.5, function() end))
                             end))
                         end
@@ -73,84 +85,44 @@ function PlayState:init(numPlayers, levelNum, AI)
 
     self.playerTriangle = Triangle(shiftX, 0, 25, gFonts['medium']:getHeight() - 10)
 
-    self.numInStreak = 0
-    self.streakStarter = nil
-    self.lastPlayer = nil
+    self.moveFrames = {PlayStateDataFrame(), }
     self.moveNum = 1
-    self.moveHistory = {}
+    self.currentFrame = self.moveFrames[self.moveNum]
 
-    self.messageLog = {}
+    self.currentFrame.numInStreak = 0
+    self.currentFrame.streakStarter = nil
+    self.currentFrame.lastPlayer = nil
+
+    self.currentFrame.messageLog = {}
 
     self.numPlayers = numPlayers
-    self.players = {}
+    self.currentFrame.players = {}
     for i = 1, self.numPlayers do
-        table.insert(self.players, Player(0, {}))
+        table.insert(self.currentFrame.players, Player(0, {}))
     end
-    self.currentPlayer = 1
+    self.currentFrame.currentPlayer = 1
 
-    self.graph = Graph(nodeNumbers)
+    self.currentFrame.graph = Graph(nodeNumbers)
 
     for i, edge in pairs(self.level.edges) do
-        self.graph:add_edge(edge[1], edge[2])
+        self.currentFrame.graph:add_edge(edge[1], edge[2])
     end
 
-    self.cycles = minimum_cycle_basis(self.graph)
+    self.currentFrame.cycles = minimum_cycle_basis(self.currentFrame.graph)
 
     self.selected = nil
     self.updateLocked = false
 end
 
 function PlayState:undoMove()
-    local moveNum = self.moveNum - 1
-    if moveNum == 0 then return end
+    if self.moveNum == 1 then return end
+    self.moveNum = self.moveNum - 1
+    self.currentFrame = self.moveFrames[self.moveNum]
 
-    local pentagonExists = false
-
-    for i, player in pairs(self.players) do
-        if player.moveData[moveNum] then
-            player.points = player.points - (player.moveData[moveNum].points or 0)
-            player.area = player.area - (player.moveData[moveNum].area or 0)
-
-            if player.moveData[moveNum].shapes then
-                for i, shape in pairs(player.moveData[moveNum].shapes) do
-                    if #shape == 5 then
-                        pentagonExists = true
-                        break
-                    end
-                end
-            end
-
-            player.moveData[moveNum] = nil
-        end
-    end
-
-    if pentagonExists then
-        self.numInStreak = self.numInStreak - 1
-    end
-
-    for i, message in pairs(self.messageLog) do
-        if message.move == moveNum then
-            self.messageLog[i] = nil
-        end
-    end
-
-    local move = self.moveHistory[moveNum]
-    self.graph:remove_edge(move[1], move[2])
-    self.cycles = minimum_cycle_basis(self.graph)
-    -- print_r(self.cycles)
-    -- print_r(self.graph.nodes)
-    -- print_r(self.graph.edges)
-
-    self.currentPlayer = scaleIncrement(self.currentPlayer, 1, #self.players, - 1)
-
-    local h = (self.currentPlayer - 1) * gFonts['medium']:getHeight() + (2 * (self.currentPlayer - 1)) * gFonts['small']:getHeight()
+    local h = (self.currentFrame.currentPlayer - 1) * gFonts['medium']:getHeight() + (2 * (self.currentFrame.currentPlayer - 1)) * gFonts['small']:getHeight()
     Timer.tween(0.5, {
         [self.playerTriangle] = {y = h}
     })
-
-    self.moveHistory[moveNum] = nil
-
-    self.moveNum = moveNum
 end
 
 function PlayState:possibleEdges()
@@ -188,14 +160,14 @@ function PlayState:validLine(line1)
 
     local midpoint = {(a[1] + c[1]) / 2, (a[2] + c[2]) / 2}
 
-    for i, c in pairs(self.cycles) do
+    for i, c in pairs(self.currentFrame.cycles) do
         v = getVertices(c)
         if pointInPolygon(midpoint, v) then
             return false
         end
     end
 
-    for i, line2 in pairs(self.graph.edges) do
+    for i, line2 in pairs(self.currentFrame.graph.edges) do
         -- check if the line already exists
         if (line1[1] == line2[1] and line1[2] == line2[2]) or (line1[2] == line2[1] and line1[1] == line2[2]) then
             return false
@@ -283,71 +255,73 @@ function PlayState:deselectPoints()
 end
 
 function PlayState:registerMove(move)
-    self.graph:add_edge(move[1], move[2])
+    self.moveNum = self.moveNum + 1
+    self.moveFrames[self.moveNum] = PlayStateDataFrame(self.currentFrame)
 
-    self.moveHistory[self.moveNum] = move
+    self.currentFrame = self.moveFrames[self.moveNum]
 
-    local nextCycles = minimum_cycle_basis(self.graph)
+    self.currentFrame.graph:add_edge(move[1], move[2])
+
+    -- self.moveHistory[self.moveNum] = move
+
+    local nextCycles = minimum_cycle_basis(self.currentFrame.graph)
 
     for i, c in pairs(nextCycles) do
         nextCycles[i] = validateCycle(c)
     end
 
-    local newCycles = getNewCycles(nextCycles, self.cycles)
+    local newCycles = getNewCycles(nextCycles, self.currentFrame.cycles)
 
     local pentagonExists = false
     for i, c in pairs(newCycles) do
-        table.insert(self.cycles, c)
+        table.insert(self.currentFrame.cycles, c)
         if #c == 5 then
             pentagonExists = true
         end
         sign = (shapepoints(c) and shapepoints(c) > 0) and '+' or ''
-        table.insert(self.messageLog, {
+        table.insert(self.currentFrame.messageLog, {
             ['move'] = self.moveNum,
-            ['player'] = self.currentPlayer,
+            ['player'] = self.currentFrame.currentPlayer,
             ['points'] = shapepoints(c) or 0
         })
     end
 
     if pentagonExists then
-        if self.numInStreak == 0 then
-            self.streakStarter = self.lastPlayer
+        if self.currentFrame.numInStreak == 0 then
+            self.currentFrame.streakStarter = self.currentFrame.lastPlayer
         end
-        self.numInStreak = self.numInStreak + 1
-    elseif STREAK_POINTS[self.numInStreak] then
-        self.players[self.streakStarter].points = self.players[self.streakStarter].points + STREAK_POINTS[self.numInStreak]
-        self.players[self.streakStarter].moveData[self.moveNum] = self.players[self.streakStarter].moveData[self.moveNum] or {}
-        self.players[self.streakStarter].moveData[self.moveNum]['points'] = (self.players[self.streakStarter].moveData[self.moveNum]['points'] or 0) + STREAK_POINTS[self.numInStreak]
-        table.insert(self.messageLog, {
+        self.currentFrame.numInStreak = self.currentFrame.numInStreak + 1
+    elseif STREAK_POINTS[self.currentFrame.numInStreak] then
+        table.insert(self.currentFrame.messageLog, {
             ['move'] = self.moveNum,
-            ['player'] = self.currentPlayer,
-            ['points'] = STREAK_POINTS[self.numInStreak]
+            ['player'] = self.currentFrame.streakStarter,
+            ['points'] = STREAK_POINTS[self.currentFrame.numInStreak]
         })
-        self.numInStreak = 0
-        self.streakStarter = nil
+        self.currentFrame.numInStreak = 0
+        self.currentFrame.streakStarter = nil
     end
 
-    self.players[self.currentPlayer]:update(newCycles, self.moveNum)
+    self.currentFrame.players[self.currentFrame.currentPlayer]:update(newCycles, self.moveNum)
 
-    self.lastPlayer = self.currentPlayer
-    self.currentPlayer = math.max((self.currentPlayer + 1)%(self.numPlayers + 1), 1)
-    self.moveNum = self.moveNum + 1
-    local h = (self.currentPlayer - 1) * gFonts['medium']:getHeight() + (2 * (self.currentPlayer - 1)) * gFonts['small']:getHeight()
+    self.currentFrame.lastPlayer = self.currentFrame.currentPlayer
+    self.currentFrame.currentPlayer = math.max((self.currentFrame.currentPlayer + 1)%(self.numPlayers + 1), 1)
+
+    local h = (self.currentFrame.currentPlayer - 1) * gFonts['medium']:getHeight() + (2 * (self.currentFrame.currentPlayer - 1)) * gFonts['small']:getHeight()
     Timer.tween(0.5, {
         [self.playerTriangle] = {y = h}
     })
     self.gameOver = self:checkGameOver()
     if self.gameOver then
-        if self.numInStreak > 0 then
-            self.players[self.streakStarter].points = self.players[self.streakStarter].points + (STREAK_POINTS[self.numInStreak] or 0)
-            self.numInStreak = 0
-            self.streakStarter = nil
+        if self.currentFrame.numInStreak > 0 then
+            self.currentFrame.players[self.currentFrame.streakStarter].points = self.currentFrame.players[self.currentFrame.streakStarter].points + (STREAK_POINTS[self.currentFrame.numInStreak] or 0)
+            self.currentFrame.numInStreak = 0
+            self.currentFrame.streakStarter = nil
         end
 
         bestArea = 0
         bestPlayersArea = {}
 
-        for i, player in pairs(self.players) do
+        for i, player in pairs(self.currentFrame.players) do
             if player.area > bestArea then
                 bestArea = player.area
                 bestPlayersArea = {i, }
@@ -358,14 +332,14 @@ function PlayState:registerMove(move)
 
         local points = #bestPlayersArea == 1 and MOST_AREA_POINTS or TIED_AREA_POINTS
         for i, player in pairs(bestPlayersArea) do
-            self.players[player].points = self.players[player].points + points
+            self.currentFrame.players[player].points = self.currentFrame.players[player].points + points
         end
 
         bestPlayers = {1, }
-        bestScore = self.players[1].points
+        bestScore = self.currentFrame.players[1].points
 
-        for i = 2, #self.players do
-            player = self.players[i]
+        for i = 2, #self.currentFrame.players do
+            player = self.currentFrame.players[i]
             if player.points > bestScore then
                 bestScore = player.points
                 bestPlayers = {i, }
@@ -380,7 +354,7 @@ function PlayState:registerMove(move)
             bestPlayer = bestPlayers[1]
         end
 
-        gStateStack:push(GameOverState(bestPlayer, bestPlayersArea, self.players))
+        gStateStack:push(GameOverState(bestPlayer, bestPlayersArea, self.currentFrame.players))
     end
 end
 
@@ -394,7 +368,7 @@ function PlayState:update(dt)
     end
 
     mouseX, mouseY = push:toGame(love.mouse.getX(), love.mouse.getY())
-    if self.AI[self.currentPlayer] then
+    if self.AI[self.currentFrame.currentPlayer] then
         self.updateLocked = true
         Timer.after(AI_DELAY, function()
             self:processAI(dt)
@@ -402,7 +376,7 @@ function PlayState:update(dt)
         end)
     end
 
-    if love.mouse.keysPressed[1] and not self.gameover and not self.AI[self.currentPlayer] and mouseX and mouseY then
+    if love.mouse.keysPressed[1] and not self.gameover and not self.AI[self.currentFrame.currentPlayer] and mouseX and mouseY then
         if self.selected then
             local other = nil
             for i, point in pairs(gPoints) do
@@ -443,7 +417,7 @@ function PlayState:render()
     love.graphics.clear(255, 255, 255, 255)
     self.playerTriangle:render()
 
-    for i, cycle in pairs(self.cycles) do
+    for i, cycle in pairs(self.currentFrame.cycles) do
         if #cycle == 5 then
             love.graphics.setColor(255, 0, 0, 200)
         else
@@ -464,7 +438,7 @@ function PlayState:render()
 
     shiftY = gFonts['medium']:getHeight()
 
-    for i, line in pairs(self.graph.edges) do
+    for i, line in pairs(self.currentFrame.graph.edges) do
         love.graphics.line(gPoints[line[1]][1], gPoints[line[1]][2], gPoints[line[2]][1], gPoints[line[2]][2])
     end
 
@@ -487,7 +461,7 @@ function PlayState:render()
     if self.gameOver then
         love.graphics.printf("Game over.", 0, 0, VIRTUAL_WIDTH, 'center')
     else
-        love.graphics.printf("Player " .. tostring(self.currentPlayer) .. "'s turn!", 0, 0, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf("Player " .. tostring(self.currentFrame.currentPlayer) .. "'s turn!", 0, 0, VIRTUAL_WIDTH, 'center')
     end
     for i = 1, self.numPlayers do
         local h = (i - 1) * gFonts['medium']:getHeight() + (2 * (i - 1)) * gFonts['small']:getHeight()
@@ -495,8 +469,8 @@ function PlayState:render()
         love.graphics.printf("Player " .. tostring(i) .. (self.AI[i] and ' (AI)' or ''), 0, h, shiftX)
 
         love.graphics.setFont(gFonts['small'])
-        love.graphics.printf("Points: " .. tostring(self.players[i].points), 0, h + gFonts['medium']:getHeight(), shiftX)
-        love.graphics.printf("Area: " .. tostring(math.floor(self.players[i].area, 0)), 0, h + gFonts['medium']:getHeight() + gFonts['small']:getHeight(), shiftX)
+        love.graphics.printf("Points: " .. tostring(self.currentFrame.players[i].points), 0, h + gFonts['medium']:getHeight(), shiftX)
+        love.graphics.printf("Area: " .. tostring(math.floor(self.currentFrame.players[i].area, 0)), 0, h + gFonts['medium']:getHeight() + gFonts['small']:getHeight(), shiftX)
     end
 
     local y = self.numPlayers * gFonts['medium']:getHeight() + (2 * self.numPlayers) * gFonts['small']:getHeight() + 20
@@ -511,8 +485,8 @@ function PlayState:render()
     end
 
     y = y + gFonts['small']:getHeight()
-    for i = #self.messageLog, 1, - 1 do
-        message = self.messageLog[i]
+    for i = #self.currentFrame.messageLog, 1, - 1 do
+        message = self.currentFrame.messageLog[i]
         for i, heading in pairs(headings) do
             love.graphics.printf(message[heading], headingsX[heading], y, gFonts['small']:getWidth(heading), 'center')
         end

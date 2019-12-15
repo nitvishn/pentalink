@@ -9,18 +9,19 @@ function BackgroundState:init(levelnum)
         table.insert(nodeNumbers, i)
     end
 
-    self.graph = Graph(nodeNumbers)
+    self.currentFrame = PlayStateDataFrame()
+    self.currentFrame.graph = Graph(nodeNumbers)
     self.rotation = 0
     self.projected = deepcopy(gPoints)
-    self.cycles = {}
+    self.currentFrame.cycles = {}
 
     self:updateAvailableEdges()
     while #self.availableEdges > 0 do
         edge = self.availableEdges[math.random(1, #self.availableEdges)]
-        self.graph:add_edge(edge[1], edge[2])
+        self.currentFrame.graph:add_edge(edge[1], edge[2])
         self:updateAvailableEdges()
     end
-    self.cycles = minimum_cycle_basis(self.graph)
+    self.currentFrame.cycles = minimum_cycle_basis(self.currentFrame.graph)
 
     local colors = {}
     for i = 1, 10 do
@@ -28,7 +29,7 @@ function BackgroundState:init(levelnum)
     end
 
     self.colorAllocation = {}
-    for i, c in pairs(self.cycles) do
+    for i, c in pairs(self.currentFrame.cycles) do
         self.colorAllocation[c] = colors[math.random(#colors)]
     end
     self.backgroundColor = colors[math.random(#colors)]
@@ -84,7 +85,7 @@ function BackgroundState:render(position)
     love.graphics.translate(self.position.x, self.position.y)
     love.graphics.clear(255, 255, 255, 255)
 
-    for i, cycle in pairs(self.cycles) do
+    for i, cycle in pairs(self.currentFrame.cycles) do
         love.graphics.setColor(self.colorAllocation[cycle])
         local vertices = getVertices(cycle, self.projected)
         local function polygonStencilFunction()
@@ -110,7 +111,7 @@ function BackgroundState:render(position)
     shiftX = 100
     shiftY = gFonts['medium']:getHeight()
 
-    for i, line in pairs(self.graph.edges) do
+    for i, line in pairs(self.currentFrame.graph.edges) do
         love.graphics.line(self.projected[line[1]][1], self.projected[line[1]][2], self.projected[line[2]][1], self.projected[line[2]][2])
     end
 
