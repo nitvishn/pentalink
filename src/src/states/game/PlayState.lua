@@ -62,14 +62,14 @@ function PlayState:init(numPlayers, levelNum, AI)
         ),
         Button(
             gTextures['buttons']['undo'],
-            VIRTUAL_WIDTH - ICON_SIZE * 2, 0, ICON_SIZE, ICON_SIZE, self.colors['undo'],
+            VIRTUAL_WIDTH - ICON_SIZE * 3, 0, ICON_SIZE, ICON_SIZE, self.colors['undo'],
             function()
                 self:undoMove()
             end
         ),
         Button(
             gTextures['buttons']['redo'],
-            VIRTUAL_WIDTH - ICON_SIZE * 3, 0, ICON_SIZE, ICON_SIZE, self.colors['redo'],
+            VIRTUAL_WIDTH - ICON_SIZE * 2, 0, ICON_SIZE, ICON_SIZE, self.colors['redo'],
             function()
                 self:redoMove()
             end
