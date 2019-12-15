@@ -2,10 +2,15 @@ PlayState = Class{__includes = BaseState}
 
 function PlayState:init(numPlayers, levelNum, AI)
     self.AI = AI
+    self.colors = {
+        ['undo'] = {255, 255, 255, 0},
+        ['redo'] = {255, 255, 255, 0}
+    }
+
     self.buttons = {
         Button(
             gTextures['buttons']['hamburger'],
-            VIRTUAL_WIDTH - ICON_SIZE, 0, ICON_SIZE, ICON_SIZE,
+            VIRTUAL_WIDTH - ICON_SIZE, 0, ICON_SIZE, ICON_SIZE, nil,
             function()
                 gStateStack:push(LevelSelectState(
                     {
@@ -57,12 +62,20 @@ function PlayState:init(numPlayers, levelNum, AI)
         ),
         Button(
             gTextures['buttons']['undo'],
-            VIRTUAL_WIDTH - ICON_SIZE * 2, 0, ICON_SIZE, ICON_SIZE,
+            VIRTUAL_WIDTH - ICON_SIZE * 2, 0, ICON_SIZE, ICON_SIZE, self.colors['undo'],
             function()
                 self:undoMove()
             end
+        ),
+        Button(
+            gTextures['buttons']['redo'],
+            VIRTUAL_WIDTH - ICON_SIZE * 3, 0, ICON_SIZE, ICON_SIZE, self.colors['redo'],
+            function()
+                self:redoMove()
+            end
         )
     }
+
     self.levelNum = levelNum
     self.level = generateLevel(levelNum)
 
@@ -114,9 +127,45 @@ function PlayState:init(numPlayers, levelNum, AI)
     self.updateLocked = false
 end
 
+function PlayState:incrementMoveBy(incr)
+    self.moveNum = self.moveNum + incr
+    self.currentFrame = self.moveFrames[self.moveNum]
+
+    if self.moveNum == #self.moveFrames then
+        Timer.tween(0.1, {
+            [self.colors['redo']] = {[4] = 0}
+        })
+    else
+        Timer.tween(0.1, {
+            [self.colors['redo']] = {[4] = 255}
+        })
+    end
+
+    if self.moveNum > 1 then
+        Timer.tween(0.1, {
+            [self.colors['undo']] = {[4] = 255}
+        })
+    else
+        Timer.tween(0.1, {
+            [self.colors['undo']] = {[4] = 0}
+        })
+    end
+end
+
 function PlayState:undoMove()
     if self.moveNum == 1 then return end
-    self.moveNum = self.moveNum - 1
+
+    self:incrementMoveBy(-1)
+
+    local h = (self.currentFrame.currentPlayer - 1) * gFonts['medium']:getHeight() + (2 * (self.currentFrame.currentPlayer - 1)) * gFonts['small']:getHeight()
+    Timer.tween(0.5, {
+        [self.playerTriangle] = {y = h}
+    })
+end
+
+function PlayState:redoMove()
+    if self.moveNum == #self.moveFrames then return end
+    self:incrementMoveBy(1)
     self.currentFrame = self.moveFrames[self.moveNum]
 
     local h = (self.currentFrame.currentPlayer - 1) * gFonts['medium']:getHeight() + (2 * (self.currentFrame.currentPlayer - 1)) * gFonts['small']:getHeight()
@@ -195,7 +244,7 @@ function PlayState:validLine(line1)
     return true
 end
 
-function validateCycle(cycle)
+function refineCyclePoints(cycle)
     cyc_copy = deepcopy(cycle)
     table.insert(cyc_copy, cyc_copy[1])
     table.insert(cyc_copy, cyc_copy[2])
@@ -214,12 +263,6 @@ function validateCycle(cycle)
     for i = 1, #cyc_copy - 2 do
         if not remove[cyc_copy[i]] then
             table.insert(new_cyc, cyc_copy[i])
-        end
-    end
-
-    for i, point in gPoints do
-        if pointInPolygon(point, getVertices(cycle)) then
-            return false
         end
     end
 
@@ -255,8 +298,8 @@ function PlayState:deselectPoints()
 end
 
 function PlayState:registerMove(move)
-    self.moveNum = self.moveNum + 1
-    self.moveFrames[self.moveNum] = PlayStateDataFrame(self.currentFrame)
+    self.moveFrames[self.moveNum + 1] = PlayStateDataFrame(self.currentFrame)
+    self:incrementMoveBy(1)
 
     self.currentFrame = self.moveFrames[self.moveNum]
 
@@ -267,7 +310,7 @@ function PlayState:registerMove(move)
     local nextCycles = minimum_cycle_basis(self.currentFrame.graph)
 
     for i, c in pairs(nextCycles) do
-        nextCycles[i] = validateCycle(c)
+        nextCycles[i] = refineCyclePoints(c)
     end
 
     local newCycles = getNewCycles(nextCycles, self.currentFrame.cycles)
@@ -355,6 +398,18 @@ function PlayState:registerMove(move)
         end
 
         gStateStack:push(GameOverState(bestPlayer, bestPlayersArea, self.currentFrame.players))
+    end
+
+    if self.moveNum == #self.moveFrames then
+        Timer.tween(0.1, {
+            [self.colors['redo']] = {[4] = 0}
+        })
+    end
+
+    if self.moveNum > 1 then
+        Timer.tween(0.1, {
+            [self.colors['undo']] = {[4] = 255}
+        })
     end
 end
 

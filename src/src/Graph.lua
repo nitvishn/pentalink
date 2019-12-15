@@ -203,6 +203,13 @@ function minimum_cycle_basis(G)
                 break
             end
         end
+
+        for i, point in pairs(gPoints) do
+            if pointInPolygon(point, getVertices(c)) then
+                table.insert(remove, c)
+                break
+            end
+        end
     end
 
     local primitiveCycles = {}
@@ -267,6 +274,12 @@ end
 
 function pointInPolygon(point, vertices)
     poly = {}
+
+    for i = 1, #vertices, 2 do
+        if point[1] == vertices[i] and point[2] == vertices[i + 1] then
+            return false
+        end
+    end
 
     for i = 1, #vertices - 1, 2 do
         table.insert(poly, {vertices[i], vertices[i + 1]})

@@ -52,6 +52,7 @@ gTextures = {
         ['exit'] = love.graphics.newImage('graphics/buttons/exit.png'),
         ['home'] = love.graphics.newImage('graphics/buttons/home.png'),
         ['undo'] = love.graphics.newImage('graphics/buttons/undo.png'),
+        ['redo'] = love.graphics.newImage('graphics/buttons/redo.png'),
         ['hamburger'] = love.graphics.newImage('graphics/buttons/hamburger.png')
     }
 }
