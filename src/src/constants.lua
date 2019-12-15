@@ -1,4 +1,4 @@
-VERSION_NUMBER = "0.20"
+VERSION_NUMBER = "0.2"
 
 METRE_LENGTH = 64 -- how many pixels represent 1 metre
 

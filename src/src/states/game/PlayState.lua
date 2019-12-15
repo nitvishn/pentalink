@@ -298,6 +298,9 @@ function PlayState:deselectPoints()
 end
 
 function PlayState:registerMove(move)
+    for i = self.moveNum + 1, #self.moveFrames do
+        self.moveFrames[i] = nil
+    end
     self.moveFrames[self.moveNum + 1] = PlayStateDataFrame(self.currentFrame)
     self:incrementMoveBy(1)
 
@@ -340,6 +343,7 @@ function PlayState:registerMove(move)
             ['player'] = self.currentFrame.streakStarter,
             ['points'] = STREAK_POINTS[self.currentFrame.numInStreak]
         })
+        self.currentFrame.players[self.currentFrame.streakStarter].points = self.currentFrame.players[self.currentFrame.streakStarter].points + STREAK_POINTS[self.currentFrame.numInStreak]
         self.currentFrame.numInStreak = 0
         self.currentFrame.streakStarter = nil
     end

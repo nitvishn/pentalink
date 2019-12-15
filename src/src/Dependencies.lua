@@ -2,6 +2,7 @@ Class = require 'lib/class'
 push = require 'lib/push'
 Event = require 'lib/knife.event'
 Timer = require 'lib/knife.timer'
+-- requests = require 'lib/requests'
 
 
 require 'src/constants'
