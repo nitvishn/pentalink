@@ -1,22 +1,25 @@
 LevelSelectState = Class{__includes = BaseState}
 
-function LevelSelectState:init(data, exitButtonX, exitButtonY, buttonTexture)
-    exitButtonX = exitButtonX or VIRTUAL_WIDTH - ICON_SIZE
-    exitButtonY = exitButtonY or 0
-    buttonTexture = buttonTexture or gTextures['buttons']['exit']
-    self.buttons = {
-        -- Button(
-        --     buttonTexture,
-        --     exitButtonX, exitButtonY, ICON_SIZE, ICON_SIZE,
-        --     function()
-        --         Timer.tween(0.25, {
-        --             [self.colors['panel']] = {[4] = 0},
-        --             [self.colors['text']] = {[4] = 0},
-        --             [self.colors['background']] = {[4] = 0}
-        --         }):finish(function() gStateStack:pop() end)
-        --     end
-        -- ),
-    }
+function LevelSelectState:init(data, exitButton)
+    self.buttons = {}
+
+    if exitButton then
+        exitButtonX = VIRTUAL_WIDTH - ICON_SIZE
+        exitButtonY = 0
+        buttonTexture = gTextures['buttons']['exit']
+        table.insert(self.buttons, Button(
+            buttonTexture,
+            exitButtonX, exitButtonY, ICON_SIZE, ICON_SIZE, nil,
+            function()
+                Timer.tween(0.25, {
+                    [self.colors['panel']] = {[4] = 0},
+                    [self.colors['text']] = {[4] = 0},
+                    [self.colors['background']] = {[4] = 0}
+                }):finish(function() end)
+            end
+        ))
+    end
+
     -- object data
     self.colors = {
         ['panel'] = {245, 245, 245, 0},

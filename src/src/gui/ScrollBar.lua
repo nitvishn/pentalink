@@ -7,6 +7,12 @@ function ScrollBar:init(x, value, range, width, height)
     self.range = range
     self.y = (VIRTUAL_HEIGHT - height) * (value / range)
     self.height = height
+
+    self.dragging = {
+        ['active'] = false,
+        ['diffX'] = nil,
+        ['diffY'] = nil
+    }
 end
 
 function ScrollBar:updateValue(value)

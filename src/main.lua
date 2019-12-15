@@ -19,6 +19,7 @@ function love.load()
     love.keyboard.keysPressed = {}
     love.mouse.keysPressed = {}
     love.mouse.scroll = {x = 0, y = 0}
+    love.mouse.dragging = false
 end
 
 function love.resize(w, h)
@@ -31,6 +32,7 @@ end
 
 function love.mousepressed(x, y, button, istouch)
     love.mouse.keysPressed[button] = true
+    love.mouse.dragging = true
 end
 
 function love.wheelmoved(x, y)

@@ -1,17 +1,27 @@
 ScrollState = Class{__includes = BaseState}
 
-function ScrollState:init(textData)
+function ScrollState:init(textData, exitButton)
     self.scrollable = true
     self.textData = textData
-    self.buttons = {
-        -- Button(
-        --     gTextures['buttons']['exit'],
-        --     VIRTUAL_WIDTH - ICON_SIZE, 0, ICON_SIZE, ICON_SIZE,
-        --     function()
-        --         self:fadeOutAndPop()
-        --     end
-        -- ),
-    }
+    self.buttons = {}
+
+    if exitButton then
+        exitButtonX = VIRTUAL_WIDTH - ICON_SIZE
+        exitButtonY = 0
+        buttonTexture = gTextures['buttons']['exit']
+        table.insert(self.buttons, Button(
+            buttonTexture,
+            exitButtonX, exitButtonY, ICON_SIZE, ICON_SIZE, nil,
+            function()
+                Timer.tween(0.25, {
+                    [self.colors['panel']] = {[4] = 0},
+                    [self.colors['text']] = {[4] = 0},
+                    [self.colors['background']] = {[4] = 0}
+                }):finish(function() end)
+            end
+        ))
+    end
+
     cameraX = 0
     cameraY = 0
 
@@ -62,21 +72,38 @@ function ScrollState:update(dt)
         self:fadeOutAndPop()
     end
 
+    mouseX, mouseY = push:toGame(love.mouse.getX(), love.mouse.getY())
     if self.scrollable then
         if love.keyboard.isDown('down') or love.mouse.scroll.y < 0 then
-            cameraY = cameraY + 10 * math.abs(love.mouse.scroll.y < 0 and love.mouse.scroll.y or 1)
+            cameraY = cameraY + 20 * math.abs(love.mouse.scroll.y < 0 and love.mouse.scroll.y or 1)
             cameraY = math.min(cameraY, self.bottomY - VIRTUAL_HEIGHT)
         end
 
         if love.keyboard.isDown('up') or love.mouse.scroll.y > 0 then
-            cameraY = cameraY - 10 * (love.mouse.scroll.y > 0 and love.mouse.scroll.y or 1)
+            cameraY = cameraY - 20 * (love.mouse.scroll.y > 0 and love.mouse.scroll.y or 1)
             cameraY = math.max(cameraY, 0)
+        end
+
+        if love.mouse.isDown(1) then
+            if checkCollision(mouseX, mouseY, self.scrollbar) then
+                self.scrollbar.dragging.active = true
+                self.scrollbar.dragging.diffX = mouseX - self.scrollbar.x
+                self.scrollbar.dragging.diffY = mouseY - self.scrollbar.y
+            end
+        else
+            self.scrollbar.dragging.active = false
+            self.scrollbar.dragging.diffX = nil
+            self.scrollbar.dragging.diffY = nil
+        end
+
+        if self.scrollbar.dragging.active then
+            self.scrollbar.y = math.max(0, math.min(mouseY - self.scrollbar.dragging.diffY, VIRTUAL_HEIGHT - self.scrollbar.height))
+            cameraY = (self.scrollbar.y * self.scrollbar.range) / (VIRTUAL_HEIGHT - self.scrollbar.height)
         end
     end
 
-    mouseX, mouseY = push:toGame(love.mouse.getX(), love.mouse.getY())
     if love.mouse.keysPressed[1] and mouseX and mouseY then
-        if mouseX < self.x or mouseX > self.x + self.width or mouseY < self.y or mouseY > self.y + self.height then
+        if not (checkCollision(mouseX, mouseY, self) or checkCollision(mouseX, mouseY, self.scrollbar)) then
             self:fadeOutAndPop()
         end
     end

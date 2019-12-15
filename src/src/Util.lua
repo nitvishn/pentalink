@@ -205,6 +205,13 @@ function print_r ( t )
     print()
 end
 
+function checkCollision(x, y, object)
+    if x > object.x and x < object.x + object.width and y > object.y and y < object.y + object.height then
+        return true
+    end
+    return false
+end
+
 --[[
     Returns the length between two points on a 2D plane
 ]]

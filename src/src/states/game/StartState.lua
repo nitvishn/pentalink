@@ -61,7 +61,7 @@ function StartState:init()
                             }
                         end
 
-                        gStateStack:push(LevelSelectState(stateOptions))
+                        gStateStack:push(LevelSelectState(stateOptions, true))
                     end,
                 },
                 {
@@ -83,15 +83,15 @@ function StartState:init()
                     ["randomval"] = NUM_LEVELS,
                     ["value"] = 2
                 }
-            })) end
+            }, true)) end
         },
         {
             ["text"] = "Rules",
-            ["enter"] = function() gStateStack:push(ScrollState(HELP_DATA)) end
+            ["enter"] = function() gStateStack:push(ScrollState(HELP_DATA, true)) end
         },
         {
             ["text"] = "Credits",
-            ["enter"] = function() gStateStack:push(ScrollState(CREDITS_DATA)) end
+            ["enter"] = function() gStateStack:push(ScrollState(CREDITS_DATA, true)) end
         },
         -- {
         --     ["text"] = "Settings",
