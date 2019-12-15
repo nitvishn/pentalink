@@ -2,17 +2,17 @@ BackgroundState = Class{__includes = PlayState}
 
 function BackgroundState:init(levelnum)
     local level = generateLevel(levelnum)
-    gPoints = level.points
+    self.points = level.points
 
     nodeNumbers = {}
-    for i = 1, #gPoints do
+    for i = 1, #self.points do
         table.insert(nodeNumbers, i)
     end
 
     self.currentFrame = PlayStateDataFrame()
     self.currentFrame.graph = Graph(nodeNumbers)
     self.rotation = 0
-    self.projected = deepcopy(gPoints)
+    self.projected = deepcopy(self.points)
     self.currentFrame.cycles = {}
 
     self:updateAvailableEdges()
@@ -21,7 +21,7 @@ function BackgroundState:init(levelnum)
         self.currentFrame.graph:add_edge(edge[1], edge[2])
         self:updateAvailableEdges()
     end
-    self.currentFrame.cycles = minimum_cycle_basis(self.currentFrame.graph)
+    self.currentFrame.cycles = minimum_cycle_basis(self.currentFrame.graph, self.points)
 
     local colors = {}
     for i = 1, 10 do
@@ -37,8 +37,8 @@ end
 
 function BackgroundState:updateAvailableEdges()
     self.availableEdges = {}
-    for n1 = 1, #gPoints do
-        for n2 = n1 + 1, #gPoints do
+    for n1 = 1, #self.points do
+        for n2 = n1 + 1, #self.points do
             if n1 ~= n2 and self:validLine({n1, n2}) then
                 table.insert(self.availableEdges, {n1, n2})
             end
@@ -65,7 +65,7 @@ function BackgroundState:update(dt)
         mouseX = xnew + VIRTUAL_WIDTH / 2
         mouseY = ynew + VIRTUAL_HEIGHT / 2
         self.projected = {}
-        for i, point in pairs(gPoints) do
+        for i, point in pairs(self.points) do
             local vec_x = mouseX - point[1]
             local vec_y = mouseY - point[2]
             local scale = POINT_MOVE_RADIUS / point_length(point[1], point[2], mouseX, mouseY)

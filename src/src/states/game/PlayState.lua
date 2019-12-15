@@ -79,11 +79,11 @@ function PlayState:init(numPlayers, levelNum, AI)
     self.levelNum = levelNum
     self.level = generateLevel(levelNum)
 
-    gPoints = self.level.points
+    self.points = self.level.points
 
     self.pointData = {}
     local nodeNumbers = {}
-    for i = 1, #gPoints do
+    for i = 1, #self.points do
         table.insert(nodeNumbers, i)
         self.pointData[i] = {
             ['fill'] = {0, 0, 0, 255},
@@ -94,7 +94,7 @@ function PlayState:init(numPlayers, levelNum, AI)
     shiftX = gFonts['medium']:getWidth('Player 1') * 1.5
     scale = (VIRTUAL_WIDTH - shiftX) / VIRTUAL_WIDTH
     shiftY = VIRTUAL_HEIGHT - VIRTUAL_HEIGHT * scale
-    translatePoints(gPoints, shiftX, shiftY, scale)
+    translatePoints(self.points, shiftX, shiftY, scale)
 
     self.playerTriangle = Triangle(shiftX, 0, 25, gFonts['medium']:getHeight() - 10)
 
@@ -121,7 +121,7 @@ function PlayState:init(numPlayers, levelNum, AI)
         self.currentFrame.graph:add_edge(edge[1], edge[2])
     end
 
-    self.currentFrame.cycles = minimum_cycle_basis(self.currentFrame.graph)
+    self.currentFrame.cycles = minimum_cycle_basis(self.currentFrame.graph, self.points)
 
     self.selected = nil
     self.updateLocked = false
@@ -182,8 +182,8 @@ end
 
 function PlayState:possibleEdges()
     local edges = {}
-    for n1 = 1, #gPoints do
-        for n2 = n1 + 1, #gPoints do
+    for n1 = 1, #self.points do
+        for n2 = n1 + 1, #self.points do
             if n1 ~= n2 and self:validLine({n1, n2}) then
                 table.insert(edges, {n1, n2})
             end
@@ -199,8 +199,8 @@ end
 
 function PlayState:checkGameOver()
     -- return false
-    for n1 = 1, #gPoints do
-        for n2 = 1, #gPoints do
+    for n1 = 1, #self.points do
+        for n2 = 1, #self.points do
             if n1 ~= n2 and self:validLine({n1, n2}) then
                 return false
             end
@@ -210,13 +210,13 @@ function PlayState:checkGameOver()
 end
 
 function PlayState:validLine(line1)
-    a = gPoints[line1[1]]
-    c = gPoints[line1[2]]
+    a = self.points[line1[1]]
+    c = self.points[line1[2]]
 
     local midpoint = {(a[1] + c[1]) / 2, (a[2] + c[2]) / 2}
 
     for i, c in pairs(self.currentFrame.cycles) do
-        v = getVertices(c)
+        v = getVertices(c, self.points)
         if pointInPolygon(midpoint, v) then
             return false
         end
@@ -227,15 +227,15 @@ function PlayState:validLine(line1)
         if (line1[1] == line2[1] and line1[2] == line2[2]) or (line1[2] == line2[1] and line1[1] == line2[2]) then
             return false
         end
-        coordinateLine1 = deepcopy({gPoints[line1[1]], gPoints[line1[2]]})
-        coordinateLine2 = deepcopy({gPoints[line2[1]], gPoints[line2[2]]})
+        coordinateLine1 = deepcopy({self.points[line1[1]], self.points[line1[2]]})
+        coordinateLine2 = deepcopy({self.points[line2[1]], self.points[line2[2]]})
 
         if lines_intersect(coordinateLine1, coordinateLine2) then
             return false
         end
     end
 
-    for i, b in pairs(gPoints) do
+    for i, b in pairs(self.points) do
         if table.contains(line1, i) then
             goto continue
         end
@@ -250,16 +250,16 @@ function PlayState:validLine(line1)
     return true
 end
 
-function refineCyclePoints(cycle)
+function refineCyclePoints(cycle, points)
     cyc_copy = deepcopy(cycle)
     table.insert(cyc_copy, cyc_copy[1])
     table.insert(cyc_copy, cyc_copy[2])
 
     remove = {}
     for i = 1, #cyc_copy - 2 do
-        a = gPoints[cyc_copy[i]]
-        b = gPoints[cyc_copy[i + 1]]
-        c = gPoints[cyc_copy[i + 2]]
+        a = points[cyc_copy[i]]
+        b = points[cyc_copy[i + 1]]
+        c = points[cyc_copy[i + 2]]
         if lies_between(a, c, b) then
             remove[cyc_copy[i + 1]] = true
         end
@@ -276,7 +276,7 @@ function refineCyclePoints(cycle)
 end
 
 function PlayState:selectPoint(point)
-    for i = 1, #gPoints do
+    for i = 1, #self.points do
         if point == i then
             Timer.tween(0.25, {
                 [self.pointData[i]['fill']] = {255, 0, 0, 255}
@@ -296,7 +296,7 @@ function PlayState:selectPoint(point)
 end
 
 function PlayState:deselectPoints()
-    for i = 1, #gPoints do
+    for i = 1, #self.points do
         Timer.tween(0.25, {
             [self.pointData[i]['fill']] = {0, 0, 0, 255}
         })
@@ -316,10 +316,10 @@ function PlayState:registerMove(move)
 
     -- self.moveHistory[self.moveNum] = move
 
-    local nextCycles = minimum_cycle_basis(self.currentFrame.graph)
+    local nextCycles = minimum_cycle_basis(self.currentFrame.graph, self.points)
 
     for i, c in pairs(nextCycles) do
-        nextCycles[i] = refineCyclePoints(c)
+        nextCycles[i] = refineCyclePoints(c, self.points)
     end
 
     local newCycles = getNewCycles(nextCycles, self.currentFrame.cycles)
@@ -356,7 +356,7 @@ function PlayState:registerMove(move)
         self.currentFrame.streakStarter = nil
     end
 
-    self.currentFrame.players[self.currentFrame.currentPlayer]:update(newCycles, self.moveNum)
+    self.currentFrame.players[self.currentFrame.currentPlayer]:update(newCycles, self.moveNum, self.points)
 
     self.currentFrame.lastPlayer = self.currentFrame.currentPlayer
     self.currentFrame.currentPlayer = math.max((self.currentFrame.currentPlayer + 1)%(self.numPlayers + 1), 1)
@@ -451,7 +451,7 @@ function PlayState:update(dt)
     if love.mouse.keysPressed[1] and not self.gameover and not self.AI[self.currentFrame.currentPlayer] and mouseX and mouseY then
         if self.selected then
             local other = nil
-            for i, point in pairs(gPoints) do
+            for i, point in pairs(self.points) do
                 if point_length(mouseX, mouseY, point[1], point[2]) <= POINT_HITBOX then
                     other = i
                 end
@@ -468,7 +468,7 @@ function PlayState:update(dt)
             self.selected = nil
             self:deselectPoints()
         else
-            for i, point in pairs(gPoints) do
+            for i, point in pairs(self.points) do
                 if point_length(mouseX, mouseY, point[1], point[2]) <= POINT_HITBOX then
                     self.selected = i
                     break
@@ -495,7 +495,7 @@ function PlayState:render()
         else
             love.graphics.setColor(14, 66, 171, 200)
         end
-        local vertices = getVertices(cycle)
+        local vertices = getVertices(cycle, self.points)
         if convex then
             love.graphics.polygon('fill', vertices)
         else
@@ -511,10 +511,10 @@ function PlayState:render()
     shiftY = gFonts['medium']:getHeight()
 
     for i, line in pairs(self.currentFrame.graph.edges) do
-        love.graphics.line(gPoints[line[1]][1], gPoints[line[1]][2], gPoints[line[2]][1], gPoints[line[2]][2])
+        love.graphics.line(self.points[line[1]][1], self.points[line[1]][2], self.points[line[2]][1], self.points[line[2]][2])
     end
 
-    for i, point in pairs(gPoints) do
+    for i, point in pairs(self.points) do
         love.graphics.setFont(gFonts['small'])
 
         -- mark point numbers

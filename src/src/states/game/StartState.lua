@@ -12,7 +12,8 @@ function StartState:init()
         [self.positions['menu']] = {y = 0}
     })
     -- self.positions['title'] = {y = VIRTUAL_HEIGHT / 2 - gFonts['large']:getHeight()}
-    self.background = BackgroundState(NUM_LEVELS)
+    self.background = gBackgroundState
+    self.background.rotation = 0
     self.highlighted = 0
     self.options = {
         {

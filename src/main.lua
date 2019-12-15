@@ -14,6 +14,7 @@ function love.load()
     })
 
     gStateStack = StateStack()
+    gBackgroundState = BackgroundState(NUM_LEVELS)
     gStateStack:push(StartState(1, 3))
 
     love.keyboard.keysPressed = {}

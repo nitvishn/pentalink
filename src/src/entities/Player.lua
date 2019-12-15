@@ -24,14 +24,14 @@ function shapepoints(c)
     end
 end
 
-function Player:update(shapes, move)
+function Player:update(shapes, move, points_list)
     self.moveData[move] = {}
     self.moveData[move]['shapes'] = shapes
     self.moveData[move]['area'] = 0
     self.moveData[move]['points'] = 0
     for i, c in pairs(shapes) do
-        self.area = self.area + shoelace(points_set(c)) * (PIXEL_AREA_SCALE_FACTOR)
-        self.moveData[move]['area'] = self.moveData[move]['area'] + shoelace(points_set(c)) * (PIXEL_AREA_SCALE_FACTOR)
+        self.area = self.area + shoelace(points_set(c, points_list)) * (PIXEL_AREA_SCALE_FACTOR)
+        self.moveData[move]['area'] = self.moveData[move]['area'] + shoelace(points_set(c, points_list)) * (PIXEL_AREA_SCALE_FACTOR)
         self.points = self.points + shapepoints(c)
         self.moveData[move]['points'] = self.moveData[move]['points'] + shapepoints(c)
     end

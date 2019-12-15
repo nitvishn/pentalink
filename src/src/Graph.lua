@@ -44,10 +44,6 @@ function Graph:remove_edge(n1, n2)
             self.nodes[n2][i] = nil
         end
     end
-
-    -- for i = 1, #self.nodes[n2] do
-    --     self.nodes[n2][i] = (self.nodes[n2][i][1] == n1) and nil or self.nodes[n2][i]
-    -- end
 end
 
 function Graph:add_node(node)
@@ -171,7 +167,7 @@ function shouldInsert(cycles, cycle_path)
     return true
 end
 
-function minimum_cycle_basis(G)
+function minimum_cycle_basis(G, points)
     cycles = {}
     Pi = all_pairs_shortest_paths(G)
     for v in pairs(G.nodes) do
@@ -192,9 +188,9 @@ function minimum_cycle_basis(G)
     for i, c in pairs(cycles) do
         for i, e in pairs(G.edges) do
             l = lines_set(c)
-            v = getVertices(c)
-            p1 = gPoints[e[1]]
-            p2 = gPoints[e[2]]
+            v = getVertices(c, points)
+            p1 = points[e[1]]
+            p2 = points[e[2]]
             e1_inside = table.contains(c, e[1])
             e2_inside = table.contains(c, e[2])
 
@@ -204,8 +200,8 @@ function minimum_cycle_basis(G)
             end
         end
 
-        for i, point in pairs(gPoints) do
-            if pointInPolygon(point, getVertices(c)) then
+        for i, point in pairs(points) do
+            if pointInPolygon(point, getVertices(c, points)) then
                 table.insert(remove, c)
                 break
             end
@@ -232,11 +228,11 @@ function lines_set(cycle)
     return lines
 end
 
-function points_set(cycle)
+function points_set(cycle, points)
     pset = {{}, {}}
     for i = 1, #cycle do
-        table.insert(pset[1], gPoints[cycle[i]][1])
-        table.insert(pset[2], gPoints[cycle[i]][2])
+        table.insert(pset[1], points[cycle[i]][1])
+        table.insert(pset[2], points[cycle[i]][2])
     end
     return pset
 end
@@ -258,7 +254,7 @@ end
 
 
 function getVertices(cycle, point_list)
-    point_list = point_list or gPoints
+    point_list = point_list
     local vertices = {}
     for j, nodeNumber in pairs(cycle) do
         vertices = table.concatenate(vertices, point_list[nodeNumber])
