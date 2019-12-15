@@ -161,6 +161,9 @@ function PlayState:undoMove()
     Timer.tween(0.5, {
         [self.playerTriangle] = {y = h}
     })
+    print("Movenum: ", self.moveNum)
+    print("Num in streak: ", self.currentFrame.numInStreak)
+    print("Streak starter: ", self.currentFrame.streakStarter)
 end
 
 function PlayState:redoMove()
@@ -172,6 +175,9 @@ function PlayState:redoMove()
     Timer.tween(0.5, {
         [self.playerTriangle] = {y = h}
     })
+    print("Movenum: ", self.moveNum)
+    print("Num in streak: ", self.currentFrame.numInStreak)
+    print("Streak starter: ", self.currentFrame.streakStarter)
 end
 
 function PlayState:possibleEdges()
@@ -337,13 +343,15 @@ function PlayState:registerMove(move)
             self.currentFrame.streakStarter = self.currentFrame.lastPlayer
         end
         self.currentFrame.numInStreak = self.currentFrame.numInStreak + 1
-    elseif STREAK_POINTS[self.currentFrame.numInStreak] then
-        table.insert(self.currentFrame.messageLog, {
-            ['move'] = self.moveNum,
-            ['player'] = self.currentFrame.streakStarter,
-            ['points'] = STREAK_POINTS[self.currentFrame.numInStreak]
-        })
-        self.currentFrame.players[self.currentFrame.streakStarter].points = self.currentFrame.players[self.currentFrame.streakStarter].points + STREAK_POINTS[self.currentFrame.numInStreak]
+    else
+        if STREAK_POINTS[self.currentFrame.numInStreak] then
+            table.insert(self.currentFrame.messageLog, {
+                ['move'] = self.moveNum,
+                ['player'] = self.currentFrame.streakStarter,
+                ['points'] = STREAK_POINTS[self.currentFrame.numInStreak]
+            })
+            self.currentFrame.players[self.currentFrame.streakStarter].points = self.currentFrame.players[self.currentFrame.streakStarter].points + STREAK_POINTS[self.currentFrame.numInStreak]
+        end
         self.currentFrame.numInStreak = 0
         self.currentFrame.streakStarter = nil
     end
@@ -415,6 +423,11 @@ function PlayState:registerMove(move)
             [self.colors['undo']] = {[4] = 255}
         })
     end
+
+    print()
+    print("Movenum: ", self.moveNum)
+    print("Num in streak: ", self.currentFrame.numInStreak)
+    print("Streak starter: ", self.currentFrame.streakStarter)
 end
 
 function PlayState:update(dt)
