@@ -52,7 +52,7 @@ function ScrollState:init(textData, exitButton)
     })
 
     self.bottomY = -VIRTUAL_WIDTH * 2
-    self.scrollbar = ScrollBar(self.x - 20, 0, self.bottomY, 10, 2 * VIRTUAL_HEIGHT / 3)
+    self.scrollbar = ScrollBar(self.x + self.width + 50, 0, self.bottomY, 10, 2 * VIRTUAL_HEIGHT / 3)
 end
 
 function ScrollState:fadeOutAndPop()
