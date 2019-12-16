@@ -7,11 +7,11 @@ function love.load()
 
     math.randomseed(os.time())
 
-    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, 0, 0, {
-        fullscreen = false,
-        vsync = true,
-        resizable = true
-    })
+    readSettings()
+
+    setupScreen()
+    setupVolume()
+    -- love.window.setFullscreen(true, "desktop")
 
     gStateStack = StateStack()
     gBackgroundState = BackgroundState(NUM_LEVELS)
@@ -58,4 +58,23 @@ function love.draw()
     push:start()
     gStateStack:render()
     push:finish()
+end
+
+function setupScreen()
+    WINDOW_WIDTH, WINDOW_HEIGHT = parseResolution(DISPLAY_RESOLUTIONS[gSettings['displayResolution']])
+    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
+        fullscreen = gSettings['fullscreen'],
+        vsync = true,
+        resizable = true
+    })
+end
+
+function setupVolume()
+    for i, source in pairs(gSoundEffects) do
+        source:setVolume(gSettings['sfxVolume'])
+    end
+
+    for i, source in pairs(gSoundMusic) do
+        source:setVolume(gSettings['musicVolume'])
+    end
 end

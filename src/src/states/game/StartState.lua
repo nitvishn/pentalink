@@ -14,7 +14,7 @@ function StartState:init()
     -- self.positions['title'] = {y = VIRTUAL_HEIGHT / 2 - gFonts['large']:getHeight()}
     self.background = gBackgroundState
     self.background.rotation = 0
-    self.highlighted = 0
+    self.highlighted = 3
     self.options = {
         {
             ["text"] = "Play",
@@ -82,7 +82,7 @@ function StartState:init()
                     ["enter"] = function() gStateStack.states[#gStateStack.states].data[1]['enter']() end,
                     ["font"] = gFonts['medium-smaller'],
                     ["randomval"] = NUM_LEVELS,
-                    ["value"] = 2
+                    ["value"] = 1
                 }
             }, true)) end
         },
@@ -94,10 +94,10 @@ function StartState:init()
             ["text"] = "Credits",
             ["enter"] = function() gStateStack:push(ScrollState(CREDITS_DATA, true)) end
         },
-        -- {
-        --     ["text"] = "Settings",
-        --     ["enter"] = function() gStateStack:push(SettingsState()) end
-        -- }
+        {
+            ["text"] = "Settings",
+            ["enter"] = function() gStateStack:push(SettingsState()) end
+        }
     }
 end
 
@@ -111,12 +111,12 @@ function StartState:update(dt)
 
     if love.keyboard.wasPressed('up') then
         self.highlighted = (self.highlighted - 1) % #self.options
-        gSounds['menu-select']:play()
+        gSoundEffects['menu-select']:play()
     end
 
     if love.keyboard.wasPressed('down') then
         self.highlighted = (self.highlighted + 1) % #self.options
-        gSounds['menu-select']:play()
+        gSoundEffects['menu-select']:play()
     end
 
     if love.keyboard.wasPressed('return') then

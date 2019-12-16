@@ -30,7 +30,7 @@ function PlayState:init(numPlayers, levelNum, AI)
                         ['text'] = 'Rules',
                         ["font"] = gFonts['medium'],
                         ["arrowFunction"] = function(incr) end,
-                        ["enter"] = function() gStateStack:push(ScrollState(HELP_DATA)) end
+                        ["enter"] = function() gStateStack:push(ScrollState(HELP_DATA, true)) end
                     },
                     {
                         ['text'] = 'Restart',
@@ -42,6 +42,14 @@ function PlayState:init(numPlayers, levelNum, AI)
                                 self:init(#self.currentFrame.players, self.levelNum, self.AI)
                                 gStateStack:push(FadeOutState({r = 255, g = 255, b = 255}, 0.5, function() end))
                             end))
+                        end
+                    },
+                    {
+                        ['text'] = 'Settings',
+                        ["font"] = gFonts['medium'],
+                        ["arrowFunction"] = function(incr) end,
+                        ["enter"] = function()
+                            gStateStack:push(SettingsState())
                         end
                     },
                     {
@@ -60,6 +68,9 @@ function PlayState:init(numPlayers, levelNum, AI)
                 }, nil, nil, gTextures['buttons']['hamburger']))
             end
         ),
+    }
+
+    self.undoButtons = {
         Button(
             gTextures['buttons']['undo'],
             VIRTUAL_WIDTH - ICON_SIZE * 3, 0, ICON_SIZE, ICON_SIZE, self.colors['undo'],
@@ -161,9 +172,6 @@ function PlayState:undoMove()
     Timer.tween(0.5, {
         [self.playerTriangle] = {y = h}
     })
-    print("Movenum: ", self.moveNum)
-    print("Num in streak: ", self.currentFrame.numInStreak)
-    print("Streak starter: ", self.currentFrame.streakStarter)
 end
 
 function PlayState:redoMove()
@@ -175,9 +183,6 @@ function PlayState:redoMove()
     Timer.tween(0.5, {
         [self.playerTriangle] = {y = h}
     })
-    print("Movenum: ", self.moveNum)
-    print("Num in streak: ", self.currentFrame.numInStreak)
-    print("Streak starter: ", self.currentFrame.streakStarter)
 end
 
 function PlayState:possibleEdges()
@@ -423,16 +428,17 @@ function PlayState:registerMove(move)
             [self.colors['undo']] = {[4] = 255}
         })
     end
-
-    print()
-    print("Movenum: ", self.moveNum)
-    print("Num in streak: ", self.currentFrame.numInStreak)
-    print("Streak starter: ", self.currentFrame.streakStarter)
 end
 
 function PlayState:update(dt)
     for i, button in pairs(self.buttons) do
         button:update()
+    end
+
+    if gSettings['enableUndo'] then
+        for i, button in pairs(self.undoButtons) do
+            button:update()
+        end
     end
 
     if self.updateLocked then
@@ -461,7 +467,7 @@ function PlayState:update(dt)
                 if self:validLine({self.selected, other}) then
                     self:registerMove({self.selected, other})
                 else
-                    gSounds['deny-connection']:play()
+                    gSoundEffects['deny-connection']:play()
                     -- graphics to show line and then fade it out
                 end
             end
@@ -518,8 +524,10 @@ function PlayState:render()
         love.graphics.setFont(gFonts['small'])
 
         -- mark point numbers
-        -- love.graphics.setColor(0, 0, 0, 255)
-        -- love.graphics.print(tostring(i), point[1], point[2])
+        if gSettings['displayVertex'] then
+            love.graphics.setColor(0, 0, 0, 255)
+            love.graphics.print(tostring(i), point[1], point[2])
+        end
 
         love.graphics.setColor(self.pointData[i]['outline'])
         love.graphics.circle('fill', point[1], point[2], 5)
@@ -567,5 +575,11 @@ function PlayState:render()
 
     for i, button in pairs(self.buttons) do
         button:render()
+    end
+
+    if gSettings['enableUndo'] then
+        for i, button in pairs(self.undoButtons) do
+            button:render()
+        end
     end
 end

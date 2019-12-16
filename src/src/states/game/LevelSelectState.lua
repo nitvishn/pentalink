@@ -4,7 +4,7 @@ function LevelSelectState:init(data, exitButton)
     self.buttons = {}
 
     if exitButton then
-        exitButtonX = VIRTUAL_WIDTH - ICON_SIZE
+        exitButtonX = 0
         exitButtonY = 0
         buttonTexture = gTextures['buttons']['exit']
         table.insert(self.buttons, Button(

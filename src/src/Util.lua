@@ -291,3 +291,152 @@ function lies_between(a, c, b)
     end
     return false
 end
+
+function lines_set(cycle)
+    lines = {}
+    for i = 1, #cycle - 1 do
+        table.insert(lines, {cycle[i], cycle[i + 1]})
+    end
+    table.insert(lines, {cycle[1], cycle[#cycle]})
+    return lines
+end
+
+function points_set(cycle, points)
+    pset = {{}, {}}
+    for i = 1, #cycle do
+        table.insert(pset[1], points[cycle[i]][1])
+        table.insert(pset[2], points[cycle[i]][2])
+    end
+    return pset
+end
+
+function shoelace(pset)
+    n = #pset[1]
+    X = pset[1]
+    Y = pset[2]
+
+    area = 0
+    j = n
+    for i = 1, n do
+        area = area + (X[j] + X[i]) * (Y[j] - Y[i])
+        j = i
+    end
+
+    return math.abs(area / 2.0)
+end
+
+
+function getVertices(cycle, point_list)
+    point_list = point_list
+    local vertices = {}
+    for j, nodeNumber in pairs(cycle) do
+        vertices = table.concatenate(vertices, point_list[nodeNumber])
+    end
+    return vertices
+end
+
+function visitable_dfs(u, visited)
+    if not visited then
+        visited = {}
+    end
+end
+
+function pointInPolygon(point, vertices)
+    poly = {}
+
+    for i = 1, #vertices, 2 do
+        if point[1] == vertices[i] and point[2] == vertices[i + 1] then
+            return false
+        end
+    end
+
+    for i = 1, #vertices - 1, 2 do
+        table.insert(poly, {vertices[i], vertices[i + 1]})
+    end
+
+    n = #poly
+    inside = false
+    x = point[1]
+    y = point[2]
+    p1x = poly[1][1]
+    p1y = poly[1][2]
+    for i = 0, n do
+        p2x = poly[(i % n) + 1][1]
+        p2y = poly[(i % n) + 1][2]
+        -- print((i % n) + 1)
+        if y > math.min(p1y, p2y) then
+            if y <= math.max(p1y, p2y) then
+                if x <= math.max(p1x, p2x) then
+                    if p1y ~= p2y then
+                        xints = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    end
+                    if p1x == p2x or x <= xints then
+                        inside = not inside
+                    end
+                end
+            end
+        end
+        p1x = p2x
+        p1y = p2y
+    end
+
+    return inside
+end
+
+function midpoint(p1, p2)
+    return {(p1[1] + p2[1]) / 2, (p1[2] + p2[2]) / 2}
+end
+
+function highestArea(c1, c2, c3)
+    c1_area = shoelace(points_set(c1))
+    c2_area = shoelace(points_set(c2))
+    c3_area = shoelace(points_set(c3))
+    if c1_area > c2_area and c1_area > c3_area then
+        return c1
+    elseif c2_area > c1_area and c2_area > c3_area then
+        return c2
+    else
+        return c3
+    end
+end
+
+function readSettings()
+    love.filesystem.setIdentity('pentalink')
+    if not love.filesystem.exists('settings.json') then
+        gSettings = {
+            ['showBackground'] = true,
+            ['enableUndo'] = true,
+            ['displayVertex'] = true,
+            ['displayResolution'] = 2,
+            ['sfxVolume'] = 1,
+        }
+        writeSettings()
+    else
+        gSettings = json.decode(love.filesystem.read('settings.json'))
+    end
+end
+
+function writeSettings()
+    love.filesystem.write('settings.json', json.encode(gSettings))
+end
+
+function getColorComponents(color)
+    return color[1], color[2], color[3], color[4]
+end
+
+function parseResolution(resolutionString)
+    width = ""
+    height = ""
+    flag = false
+    for i = 1, #resolutionString do
+        if resolutionString:sub(i, i) == 'x' then
+            flag = true
+        elseif not flag then
+            width = width .. resolutionString:sub(i, i)
+            -- print(width)
+        else
+            height = height .. resolutionString:sub(i, i)
+        end
+    end
+    return tonumber(width), tonumber(height)
+end

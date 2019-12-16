@@ -2,7 +2,8 @@ Class = require 'lib/class'
 push = require 'lib/push'
 Event = require 'lib/knife.event'
 Timer = require 'lib/knife.timer'
--- requests = require 'lib/requests'
+-- saveData = require 'lib/saveData'
+json = require 'lib/json'
 
 
 require 'src/constants'
@@ -21,17 +22,21 @@ require 'src/states/game/PlayState'
 require 'src/states/game/PlayStateDataFrame'
 require 'src/states/game/GameOverState'
 require 'src/states/game/LevelSelectState'
+require 'src/states/game/SettingsState'
 require 'src/states/game/TextBoxState'
 require 'src/states/game/ScrollState'
 require 'src/states/game/FadeInState'
 require 'src/states/game/FadeOutState'
 require 'src/states/game/BackgroundState'
-require 'src/states/game/LevelCreateState'
+-- require 'src/states/game/LevelCreateState'
 
 require 'src/gui/Textbox'
 require 'src/gui/Panel'
 require 'src/gui/ScrollBar'
 require 'src/gui/Button'
+require 'src/gui/Toggle'
+require 'src/gui/ValueSelector'
+require 'src/gui/Slider'
 
 gFonts = {
     ['small'] = love.graphics.newFont('fonts/Antaro.ttf', 20),
@@ -43,10 +48,12 @@ gFonts = {
     ['large'] = love.graphics.newFont('fonts/Antaro.ttf', LARGE_FONT_SIZE)
 }
 
-gSounds = {
+gSoundEffects = {
     ['menu-select'] = love.audio.newSource('sounds/menu_select.wav'),
     ['deny-connection'] = love.audio.newSource('sounds/deny_connection.wav')
 }
+
+gSoundMusic = {}
 
 gTextures = {
     ['buttons'] = {
