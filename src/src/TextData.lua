@@ -39,8 +39,8 @@ CREDITS_DATA = {
     ['headers'] = {"Stavan Jain", "Vishnu Nittoor", "Aryaman Dwivedi", "Rohan Subramaniam", "Amogh Manivannan"},
     ['info'] = {
         ["Stavan Jain"] = {"Original game concept."},
-        ["Vishnu Nittoor"] = {"Lead programmer and game developer."},
-        ["Aryaman Dwivedi"] = {"Programmer."},
+        ["Vishnu Nittoor"] = {"Lead programmer and game developer.", "User experience design."},
+        ["Aryaman Dwivedi"] = {"Programmer.", "User experience design."},
         ["Rohan Subramaniam"] = {"Also helped with the game concept."},
         ["Amogh Manivannan"] = {"Marketing."}
     },
