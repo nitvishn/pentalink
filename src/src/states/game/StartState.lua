@@ -14,7 +14,7 @@ function StartState:init()
     -- self.positions['title'] = {y = VIRTUAL_HEIGHT / 2 - gFonts['large']:getHeight()}
     self.background = gBackgroundState
     self.background.rotation = 0
-    self.highlighted = 3
+    self.highlighted = 0
     self.options = {
         {
             ["text"] = "Play",

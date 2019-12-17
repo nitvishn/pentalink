@@ -1,13 +1,6 @@
 SettingsState = Class{__includes = BaseState}
 
 function SettingsState:init()
-    print_r(gSettings)
-    --[[
-        We need settings for:
-        - Detailed score breakdown at the end
-        - Whether undo is permitted
-        - Volume sliders
-    ]]
     self.width = 3 * VIRTUAL_WIDTH / 5
     self.height = 3 * VIRTUAL_HEIGHT / 4
 
@@ -131,7 +124,6 @@ function SettingsState:fadeOutAndPop()
 end
 
 function SettingsState:update(dt)
-    print_r(gSettings)
     for i, object in pairs(self.objects) do
         object:update(dt)
     end

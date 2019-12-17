@@ -41,7 +41,7 @@ CREDITS_DATA = {
         ["Stavan Jain"] = {"Original game concept."},
         ["Vishnu Nittoor"] = {"Lead programmer and game developer.", "User experience design."},
         ["Aryaman Dwivedi"] = {"Programmer.", "User experience design."},
-        ["Rohan Subramaniam"] = {"Also helped with the game concept."},
+        ["Rohan Subramaniam"] = {"Original game concept."},
         ["Amogh Manivannan"] = {"Marketing."}
     },
 }

@@ -59,22 +59,3 @@ function love.draw()
     gStateStack:render()
     push:finish()
 end
-
-function setupScreen()
-    WINDOW_WIDTH, WINDOW_HEIGHT = parseResolution(DISPLAY_RESOLUTIONS[gSettings['displayResolution']])
-    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
-        fullscreen = gSettings['fullscreen'],
-        vsync = true,
-        resizable = true
-    })
-end
-
-function setupVolume()
-    for i, source in pairs(gSoundEffects) do
-        source:setVolume(gSettings['sfxVolume'])
-    end
-
-    for i, source in pairs(gSoundMusic) do
-        source:setVolume(gSettings['musicVolume'])
-    end
-end

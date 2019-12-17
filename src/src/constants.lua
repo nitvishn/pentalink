@@ -1,3 +1,12 @@
+defaultSettings = {
+    ['showBackground'] = true,
+    ['enableUndo'] = true,
+    ['displayVertex'] = false,
+    ['displayResolution'] = 2,
+    ['sfxVolume'] = 1,
+    ['musicVolume'] = 1
+}
+
 VERSION_NUMBER = "0.2"
 
 DISPLAY_RESOLUTIONS = {"1024x576", "1280x720", "1366x768", "1600x900", "1920x1080"}

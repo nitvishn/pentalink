@@ -403,17 +403,19 @@ end
 function readSettings()
     love.filesystem.setIdentity('pentalink')
     if not love.filesystem.exists('settings.json') then
-        gSettings = {
-            ['showBackground'] = true,
-            ['enableUndo'] = true,
-            ['displayVertex'] = true,
-            ['displayResolution'] = 2,
-            ['sfxVolume'] = 1,
-        }
+        gSettings = defaultSettings
         writeSettings()
+        print('init')
     else
-        gSettings = json.decode(love.filesystem.read('settings.json'))
+        data = json.decode(love.filesystem.read('settings.json'))
+        for k, value in pairs(defaultSettings) do
+            if (data[k] == nil) or (type(data[k]) ~= type(defaultSettings[k])) then
+                gSettings = defaultSettings
+                writeSettings()
+            end
+        end
     end
+    gSettings = json.decode(love.filesystem.read('settings.json'))
 end
 
 function writeSettings()
@@ -439,4 +441,23 @@ function parseResolution(resolutionString)
         end
     end
     return tonumber(width), tonumber(height)
+end
+
+function setupScreen()
+    WINDOW_WIDTH, WINDOW_HEIGHT = parseResolution(DISPLAY_RESOLUTIONS[gSettings['displayResolution']])
+    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
+        fullscreen = gSettings['fullscreen'],
+        vsync = true,
+        resizable = true
+    })
+end
+
+function setupVolume()
+    for i, source in pairs(gSoundEffects) do
+        source:setVolume(gSettings['sfxVolume'])
+    end
+
+    for i, source in pairs(gSoundMusic) do
+        source:setVolume(gSettings['musicVolume'])
+    end
 end
